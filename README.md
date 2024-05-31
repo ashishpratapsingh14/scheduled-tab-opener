@@ -4,8 +4,6 @@ Chrome extension to open tabs based on a schedule
 # Step 1: Prepare Your Extension Files
 Make sure you have all the necessary files in a single directory. Your directory structure should look like this:
 
-arduino
-Copy code
 scheduled-tab-opener/manifest.json
 
 scheduled-tab-opener/background.js
