@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Scheduled Tab Opener",
+  "version": "1.1",
+  "description": "Open tabs on a schedule.",
+  "permissions": [
+    "tabs",
+    "alarms",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
