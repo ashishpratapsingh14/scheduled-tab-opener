@@ -6,11 +6,13 @@ Make sure you have all the necessary files in a single directory. Your directory
 
 arduino
 Copy code
-scheduled-tab-opener/
-manifest.json
-background.js
-popup.html
-popup.js
+scheduled-tab-opener/manifest.json
+
+scheduled-tab-opener/background.js
+
+scheduled-tab-opener/popup.html
+
+scheduled-tab-opener/popup.js
 # Step 2: Load the Extension in Chrome
 Open Chrome Extensions Page:
 
