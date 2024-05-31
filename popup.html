@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Schedule Tab Opener</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    label { display: block; margin-top: 10px; }
+    input, select { margin-top: 5px; width: 100%; }
+    button { margin-top: 10px; }
+    .tab-list { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Schedule Tab Opener</h1>
+  <label for="url">URL:</label>
+  <input type="text" id="url" placeholder="https://example.com">
+  
+  <label for="frequency">Frequency:</label>
+  <select id="frequency">
+    <option value="once">Once</option>
+    <option value="daily">Daily</option>
+    <option value="weekly">Weekly</option>
+    <option value="monthly">Monthly</option>
+  </select>
+
+  <label for="time">Time (HH:MM):</label>
+  <input type="time" id="time">
+
+  <button id="scheduleBtn">Schedule</button>
+  
+  <h2>Scheduled Tabs</h2>
+  <div class="tab-list" id="tabList"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
