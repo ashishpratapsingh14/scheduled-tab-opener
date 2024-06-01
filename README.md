@@ -1,7 +1,7 @@
 # scheduled-tab-opener
 Chrome extension to open tabs based on a schedule
 
-<img width="377" alt="image" src="https://github.com/ashishpratapsingh14/scheduled-tab-opener/assets/5556957/66dacb98-41c8-4805-859a-d273805dffb3">
+<img width="285" alt="image" src="https://github.com/ashishpratapsingh14/scheduled-tab-opener/assets/5556957/48318702-5d08-4955-8f40-2062c5d1a9ad">
 
 
 # Step 1: Prepare Your Extension Files
