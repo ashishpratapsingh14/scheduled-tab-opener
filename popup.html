@@ -1,35 +1,697 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Schedule Tab Opener</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; }
-    label { display: block; margin-top: 10px; }
-    input, select { margin-top: 5px; width: 100%; }
-    button { margin-top: 10px; }
-    .tab-list { margin-top: 20px; }
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1765cc;
+      --primary-light: #e8f0fe;
+      --primary-surface: #d2e3fc;
+      --on-primary: #ffffff;
+      --surface: #ffffff;
+      --surface-variant: #f8f9fa;
+      --surface-container: #f1f3f4;
+      --on-surface: #202124;
+      --on-surface-variant: #5f6368;
+      --outline: #dadce0;
+      --outline-variant: #e8eaed;
+      --error: #d93025;
+      --error-light: #fce8e6;
+      --success: #1e8e3e;
+      --success-light: #e6f4ea;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 100px;
+      --shadow-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+      --shadow-2: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+      --shadow-3: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px rgba(60,64,67,.3);
+      --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--surface);
+      color: var(--on-surface);
+      width: 400px;
+      min-height: 480px;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      background: var(--surface);
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--outline-variant);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--on-primary);
+      font-size: 20px;
+    }
+
+    .header-text h1 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--on-surface);
+      letter-spacing: 0;
+    }
+
+    .header-text p {
+      font-size: 12px;
+      color: var(--on-surface-variant);
+      margin-top: 1px;
+    }
+
+    /* ─── Main Content ─── */
+    .content {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ─── Form Group ─── */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Text Input (Google-style outlined) ─── */
+    .input-field {
+      position: relative;
+    }
+
+    .input-field input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      font-size: 14px;
+      font-family: inherit;
+      border: 1.5px solid var(--outline);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--on-surface);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .input-field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    .input-field input::placeholder {
+      color: var(--on-surface-variant);
+      opacity: 0.7;
+    }
+
+    .input-field .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--on-surface-variant);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    /* ─── Frequency Chips (Google Calendar-style) ─── */
+    .chip-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      border: 1.5px solid var(--outline);
+      border-radius: var(--radius-full);
+      background: var(--surface);
+      color: var(--on-surface-variant);
+      cursor: pointer;
+      transition: all var(--transition);
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip:hover {
+      background: var(--surface-variant);
+      border-color: var(--on-surface-variant);
+    }
+
+    .chip.selected {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .chip .material-icons-outlined {
+      font-size: 16px;
+    }
+
+    /* ─── Day Selector (Google Calendar multi-day style) ─── */
+    .day-selector {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .day-selector.visible {
+      display: flex;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .day-grid {
+      display: flex;
+      gap: 6px;
+      justify-content: space-between;
+    }
+
+    .day-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1.5px solid var(--outline);
+      background: var(--surface);
+      color: var(--on-surface-variant);
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .day-btn:hover {
+      background: var(--surface-variant);
+      border-color: var(--on-surface-variant);
+    }
+
+    .day-btn.selected {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      box-shadow: 0 1px 3px rgba(26, 115, 232, 0.3);
+    }
+
+    .day-btn.selected:hover {
+      background: var(--primary-hover);
+    }
+
+    /* ─── Month Day Selector (Calendar Grid style) ─── */
+    .month-selector {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .month-selector.visible {
+      display: flex;
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .month-day-btn {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--on-surface-variant);
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .month-day-btn:hover {
+      background: var(--surface-container);
+    }
+
+    .month-day-btn.selected {
+      background: var(--primary);
+      color: var(--on-primary);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(26, 115, 232, 0.3);
+    }
+
+    .month-day-btn.selected:hover {
+      background: var(--primary-hover);
+    }
+
+    .selected-days-summary {
+      font-size: 12px;
+      color: var(--on-surface-variant);
+      padding: 6px 0 2px;
+      min-height: 20px;
+    }
+
+    .selected-days-summary span {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ─── Time Input ─── */
+    .input-field input[type="time"] {
+      padding: 12px 14px 12px 40px;
+      cursor: pointer;
+    }
+
+    .input-field input[type="time"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity var(--transition);
+    }
+
+    .input-field input[type="time"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
+    /* ─── Schedule Button ─── */
+    .schedule-btn {
+      width: 100%;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      background: var(--primary);
+      color: var(--on-primary);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .schedule-btn:hover {
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-1);
+    }
+
+    .schedule-btn:active {
+      transform: scale(0.98);
+    }
+
+    .schedule-btn .material-icons-outlined {
+      font-size: 18px;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: var(--outline-variant);
+      margin: 4px 0;
+    }
+
+    /* ─── Scheduled Tabs Section ─── */
+    .tabs-section {
+      padding: 0 20px 16px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 12px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title .material-icons-outlined {
+      font-size: 16px;
+    }
+
+    .tab-count {
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+
+    /* ─── Tab Card ─── */
+    .tab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tab-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+      animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-card:hover {
+      border-color: var(--outline);
+      box-shadow: var(--shadow-1);
+    }
+
+    .tab-card-indicator {
+      width: 4px;
+      min-height: 32px;
+      border-radius: 2px;
+      background: var(--primary);
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+
+    .tab-card-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tab-card-url {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .tab-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--on-surface-variant);
+    }
+
+    .tab-card-meta .material-icons-outlined {
+      font-size: 14px;
+    }
+
+    .tab-card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 10px;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+
+    .tab-card-days {
+      display: flex;
+      gap: 3px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab-card-day-chip {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: var(--radius-full);
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+    }
+
+    .delete-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--on-surface-variant);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      background: var(--error-light);
+      color: var(--error);
+    }
+
+    .delete-btn .material-icons-outlined {
+      font-size: 18px;
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--on-surface-variant);
+    }
+
+    .empty-state .material-icons-outlined {
+      font-size: 48px;
+      color: var(--outline);
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ─── Toast Notification ─── */
+    .toast {
+      position: fixed;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      color: var(--on-primary);
+      background: #323232;
+      box-shadow: var(--shadow-3);
+      z-index: 100;
+      transition: bottom 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      bottom: 16px;
+    }
+
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--error); }
+
+    .toast .material-icons-outlined {
+      font-size: 18px;
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--outline);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--on-surface-variant);
+    }
   </style>
 </head>
 <body>
-  <h1>Schedule Tab Opener</h1>
-  <label for="url">URL:</label>
-  <input type="text" id="url" placeholder="https://example.com">
-  
-  <label for="frequency">Frequency:</label>
-  <select id="frequency">
-    <option value="once">Once</option>
-    <option value="daily">Daily</option>
-    <option value="weekly">Weekly</option>
-    <option value="monthly">Monthly</option>
-  </select>
 
-  <label for="time">Time (HH:MM):</label>
-  <input type="time" id="time">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">
+      <span class="material-icons-outlined">schedule</span>
+    </div>
+    <div class="header-text">
+      <h1>Schedule Tab Opener</h1>
+      <p>Automate your browsing</p>
+    </div>
+  </div>
 
-  <button id="scheduleBtn">Schedule</button>
-  
-  <h2>Scheduled Tabs</h2>
-  <div class="tab-list" id="tabList"></div>
+  <!-- Form -->
+  <div class="content">
+    <!-- URL -->
+    <div class="form-group">
+      <label class="form-label" for="url">Website URL</label>
+      <div class="input-field">
+        <span class="material-icons-outlined input-icon">link</span>
+        <input type="text" id="url" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- Frequency -->
+    <div class="form-group">
+      <label class="form-label">Repeat</label>
+      <div class="chip-group" id="frequencyChips">
+        <button class="chip selected" data-value="once">
+          <span class="material-icons-outlined">looks_one</span>
+          Once
+        </button>
+        <button class="chip" data-value="daily">
+          <span class="material-icons-outlined">today</span>
+          Daily
+        </button>
+        <button class="chip" data-value="weekly">
+          <span class="material-icons-outlined">date_range</span>
+          Weekly
+        </button>
+        <button class="chip" data-value="monthly">
+          <span class="material-icons-outlined">calendar_month</span>
+          Monthly
+        </button>
+      </div>
+    </div>
+
+    <!-- Weekly Day Selector -->
+    <div class="day-selector" id="daySelector">
+      <label class="form-label">Select Days</label>
+      <div class="day-grid" id="dayGrid">
+        <button class="day-btn" data-day="0" title="Sunday">S</button>
+        <button class="day-btn" data-day="1" title="Monday">M</button>
+        <button class="day-btn" data-day="2" title="Tuesday">T</button>
+        <button class="day-btn" data-day="3" title="Wednesday">W</button>
+        <button class="day-btn" data-day="4" title="Thursday">T</button>
+        <button class="day-btn" data-day="5" title="Friday">F</button>
+        <button class="day-btn" data-day="6" title="Saturday">S</button>
+      </div>
+      <div class="selected-days-summary" id="daySummary"></div>
+    </div>
+
+    <!-- Monthly Day Selector -->
+    <div class="month-selector" id="monthSelector">
+      <label class="form-label">Select Dates</label>
+      <div class="month-grid" id="monthGrid"></div>
+      <div class="selected-days-summary" id="monthSummary"></div>
+    </div>
+
+    <!-- Time -->
+    <div class="form-group">
+      <label class="form-label" for="time">Time</label>
+      <div class="input-field">
+        <span class="material-icons-outlined input-icon">schedule</span>
+        <input type="time" id="time">
+      </div>
+    </div>
+
+    <!-- Schedule Button -->
+    <button class="schedule-btn" id="scheduleBtn">
+      <span class="material-icons-outlined">add_alarm</span>
+      Schedule
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Scheduled Tabs -->
+  <div class="tabs-section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="material-icons-outlined">list</span>
+        Scheduled Tabs
+      </div>
+      <span class="tab-count" id="tabCount">0</span>
+    </div>
+    <div class="tab-list" id="tabList"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span class="material-icons-outlined" id="toastIcon">check_circle</span>
+    <span id="toastMessage"></span>
+  </div>
 
   <script src="popup.js"></script>
 </body>
