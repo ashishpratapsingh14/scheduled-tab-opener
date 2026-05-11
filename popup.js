@@ -21,6 +21,15 @@ const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toastMessage');
 const toastIcon = document.getElementById('toastIcon');
 
+function ensureProtocol(url) {
+  if (!url) return url;
+  // Check if the URL already has a protocol (e.g., http://, https://, ftp://, etc.)
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+    return 'https://' + url;
+  }
+  return url;
+}
+
 // ─── Initialize Month Grid (1-31) ───
 function initMonthGrid() {
   monthGrid.innerHTML = '';
@@ -134,13 +143,16 @@ function showToast(message, type = 'success') {
 
 // ─── Schedule Tab ───
 scheduleBtn.addEventListener('click', () => {
-  const url = document.getElementById('url').value.trim();
+  let url = document.getElementById('url').value.trim();
   const time = document.getElementById('time').value;
 
   if (!url) {
     showToast('Please enter a URL', 'error');
     return;
   }
+
+  url = ensureProtocol(url);
+
   if (!time) {
     showToast('Please select a time', 'error');
     return;
@@ -169,7 +181,7 @@ scheduleBtn.addEventListener('click', () => {
   } else {
     // Once or Daily
     const firstAlarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
-    if (firstAlarmTime <= now && selectedFrequency === 'once') {
+    if (firstAlarmTime <= now) {
       firstAlarmTime.setDate(firstAlarmTime.getDate() + 1);
     }
 
@@ -252,8 +264,7 @@ function scheduleMonthlyTabs(url, hours, minutes, dates, now) {
       name: `${url}|${timeStr}|monthly|day${dateOfMonth}`,
       url,
       scheduleInfo: {
-        when: firstAlarmTime.getTime(),
-        periodInMinutes: 30 * 24 * 60
+        when: firstAlarmTime.getTime()
       }
     };
   });

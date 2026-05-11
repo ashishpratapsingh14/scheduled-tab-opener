@@ -1,10 +1,35 @@
 const MAX_SCHEDULED_TABS = 50;
 
+function ensureProtocol(url) {
+  if (!url) return url;
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+    return 'https://' + url;
+  }
+  return url;
+}
+
 chrome.alarms.onAlarm.addListener((alarm) => {
-  chrome.storage.local.get([alarm.name], (result) => {
+  chrome.storage.local.get([alarm.name, 'scheduledTabs'], (result) => {
     const url = result[alarm.name];
     if (url) {
       chrome.tabs.create({ url });
+
+      const parts = alarm.name.split('|');
+      const frequency = parts[2];
+
+      if (frequency === 'once') {
+        // Cleanup "once" alarms
+        let scheduledTabs = result.scheduledTabs || [];
+        scheduledTabs = scheduledTabs.filter(tab => tab.name !== alarm.name);
+        chrome.storage.local.set({ scheduledTabs }, () => {
+          chrome.storage.local.remove(alarm.name);
+        });
+      } else if (frequency === 'monthly') {
+        // Reschedule monthly alarms for the next month to avoid drift
+        const nextTime = new Date(alarm.scheduledTime);
+        nextTime.setMonth(nextTime.getMonth() + 1);
+        chrome.alarms.create(alarm.name, { when: nextTime.getTime() });
+      }
     }
   });
 });
@@ -15,20 +40,20 @@ function scheduleTabOpening(name, url, scheduleInfo, callback) {
     let scheduledTabs = result.scheduledTabs || [];
 
     if (scheduledTabs.some(tab => tab.name === name)) {
-      if (callback) callback();
+      if (callback) callback({ status: 'already_scheduled' });
       return;
     }
 
     if (scheduledTabs.length >= MAX_SCHEDULED_TABS) {
       console.error('Maximum number of scheduled tabs reached.');
-      if (callback) callback();
+      if (callback) callback({ status: 'error', message: 'Maximum limit of 50 scheduled tabs reached.' });
       return;
     }
 
     scheduledTabs.push({ name, url });
     chrome.storage.local.set({ scheduledTabs, [name]: url }, () => {
       chrome.alarms.create(name, scheduleInfo);
-      if (callback) callback();
+      if (callback) callback({ status: 'scheduled' });
     });
   });
 }
@@ -39,12 +64,18 @@ function scheduleBatch(items, callback) {
 
   function next() {
     if (index >= items.length) {
-      if (callback) callback();
+      if (callback) callback({ status: 'scheduled' });
       return;
     }
     const item = items[index];
     index++;
-    scheduleTabOpening(item.name, item.url, item.scheduleInfo, next);
+    scheduleTabOpening(item.name, item.url, item.scheduleInfo, (result) => {
+      if (result.status === 'error') {
+        if (callback) callback(result);
+      } else {
+        next();
+      }
+    });
   }
 
   next();
@@ -52,11 +83,12 @@ function scheduleBatch(items, callback) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scheduleTab') {
-    const { name, url, scheduleInfo } = message;
+    let { name, url, scheduleInfo } = message;
     try {
+      url = ensureProtocol(url);
       new URL(url);
-      scheduleTabOpening(name, url, scheduleInfo, () => {
-        sendResponse({ status: 'scheduled' });
+      scheduleTabOpening(name, url, scheduleInfo, (result) => {
+        sendResponse(result);
       });
     } catch (e) {
       sendResponse({ status: 'error', message: 'Invalid URL' });
@@ -66,11 +98,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   } else if (message.action === 'scheduleBatch') {
     // Batch schedule: receives an array of { name, url, scheduleInfo }
-    const { items, url: batchUrl } = message;
+    let { items, url: batchUrl } = message;
     try {
+      batchUrl = ensureProtocol(batchUrl);
       new URL(batchUrl);
-      scheduleBatch(items, () => {
-        sendResponse({ status: 'scheduled' });
+      scheduleBatch(items, (result) => {
+        sendResponse(result);
       });
     } catch (e) {
       sendResponse({ status: 'error', message: 'Invalid URL' });
@@ -105,17 +138,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       let scheduledTabs = result.scheduledTabs || [];
       scheduledTabs = scheduledTabs.filter(tab => !names.includes(tab.name));
       chrome.storage.local.set({ scheduledTabs }, () => {
-        let cleared = 0;
-        names.forEach(name => {
-          chrome.alarms.clear(name);
-          chrome.storage.local.remove(name, () => {
-            cleared++;
-            if (cleared === names.length) {
-              sendResponse({ status: 'deleted' });
-            }
-          });
+        names.forEach(name => chrome.alarms.clear(name));
+        chrome.storage.local.remove(names, () => {
+          sendResponse({ status: 'deleted' });
         });
-        if (names.length === 0) sendResponse({ status: 'deleted' });
       });
     });
     return true;
